@@ -1,0 +1,41 @@
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: var(--background);
+  margin: 0;
+  padding: 0;
+}
+* {
+  --background: #18181b;
+  --grey: #27272a;
+  --black: #09090b;
+  --violet: #6d28d9;
+
+  --radius-lg: 16px;
+  --radius-md: 8px;
+
+  --default-padding: 16px;
+
+  --default-outline: 2px solid var(--black);
+}
+
+/* ===== Scrollbar CSS ===== */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--grey);
+  border-radius: 16px;
+  border: none;
+}

@@ -68,7 +68,7 @@ export default {
     const socket = ref(null);
     const backupSocket = ref(null);
     const connectedUsers = reactive([]);
-    const isLoggedIn = ref(true);
+    const isLoggedIn = ref(false);
     const usingBackupServer = ref(false);
     const serverSwitch = ref(true);
 

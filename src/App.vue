@@ -68,7 +68,13 @@ export default {
     const connectedUsers = reactive([]);
     const isLoggedIn = ref(false);
     onMounted(() => {
-      const newSocket = io("http://localhost:5000");
+      // "https://flaskapichat.onrender.com/"
+      const newSocket = io("https://flaskapichat.onrender.com/", {
+        transports: ["websocket"],
+        cors: {
+          origin: "*",
+        },
+      });
       newSocket.on("connected", (data) => {
         console.log(data.data);
       });

@@ -81,6 +81,13 @@ export default {
       newSocket.on("user_entered", (data) => {
         connectedUsers.splice(0, connectedUsers.length, ...data.users);
       });
+      newSocket.on("thread_list", (data) => {
+        const threads = data.threads;
+        console.log("Active Threads:", threads);
+      });
+      newSocket.on("thread_print", (data) => {
+        console.log("Thread Print:", data);
+      });
       socket.value = newSocket;
       onBeforeUnmount(() => {
         newSocket.disconnect();
@@ -309,17 +316,4 @@ export default {
 .img-button {
   color: white;
 }
-
-/* .connected-users {
-  margin-top: 20px;
-}
-
-.connected-users ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.connected-users li {
-  margin-bottom: 5px;
-} */
 </style>

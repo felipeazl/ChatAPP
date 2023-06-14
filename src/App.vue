@@ -1,8 +1,8 @@
 <template>
   <div class="container">
     <div class="title-container">
-      <img src="./assets/chats.svg" />
-      <h1 class="title">VlaskChat</h1>
+      <img src="./assets/ChatGPT.svg" />
+      <h1 class="title">Gepeto</h1>
     </div>
     <!-- LoginForm -->
     <div v-if="!isLoggedIn">
@@ -26,12 +26,13 @@
           Conectado como: <span>{{ username }}</span>
         </p>
       </div>
-      <div class="messages-container">
+      <div class="messages-container" ref="messageContaier">
         <!-- Chat-Message -->
         <div
           v-for="(message, index) in messages"
           :key="index"
           class="message-card"
+          ref="messageCard"
         >
           <strong>{{ message.username }}:</strong> {{ message.message }}
         </div>
@@ -67,7 +68,7 @@ export default {
     const socket = ref(null);
     const backupSocket = ref(null);
     const connectedUsers = reactive([]);
-    const isLoggedIn = ref(false);
+    const isLoggedIn = ref(true);
     const usingBackupServer = ref(false);
     const serverSwitch = ref(true);
 
@@ -196,7 +197,6 @@ export default {
         });
       }
     });
-
     return {
       username,
       message,
@@ -226,9 +226,10 @@ export default {
 
 .title-container {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   justify-content: center;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .title-container img {
@@ -236,7 +237,7 @@ export default {
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: bold;
   padding-bottom: 16px;
 }
@@ -313,6 +314,7 @@ export default {
   overflow-y: auto;
   width: 100%;
   height: 50vh;
+  scroll-behavior: smooth;
 }
 
 .message-card {
@@ -384,5 +386,27 @@ export default {
 
 .img-button {
   color: white;
+}
+
+@media (max-width: 768px) {
+  .login-container {
+    width: 80vw;
+  }
+  .footer-container {
+    width: 80vw;
+  }
+  .text-container input {
+    width: 33vw;
+  }
+  .messages-container {
+    padding: 8px;
+    width: 100%;
+    height: 50vh;
+  }
+  .message-card {
+    padding: var(--default-padding);
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
 }
 </style>

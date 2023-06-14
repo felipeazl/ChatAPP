@@ -65,43 +65,109 @@ export default {
     const message = ref("");
     const messages = reactive([]);
     const socket = ref(null);
+    const backupSocket = ref(null);
     const connectedUsers = reactive([]);
     const isLoggedIn = ref(false);
+    const usingBackupServer = ref(false);
+    const serverSwitch = ref(true);
+
     onMounted(() => {
-      // "https://flaskapichat.onrender.com/"
-      const newSocket = io("https://flaskapichat.onrender.com/", {
+      const mainSocket = io("https://flaskapichat.onrender.com/", {
         transports: ["websocket"],
         cors: {
           origin: "*",
         },
       });
-      newSocket.on("connected", (data) => {
+
+      mainSocket.on("connect_error", () => {
+        if (serverSwitch.value) {
+          socket.value = backupSocket.value;
+          usingBackupServer.value = true;
+          serverSwitch.value = false;
+          console.log("Using backup server. Trying Reconect...");
+          setTimeout(() => {
+            serverSwitch.value = true;
+          }, 10000);
+        }
+      });
+
+      mainSocket.on("connected", (data) => {
         console.log(data.data);
       });
-      newSocket.on("user_entered", (data) => {
+
+      mainSocket.on("user_entered", (data) => {
         connectedUsers.splice(0, connectedUsers.length, ...data.users);
       });
-      newSocket.on("thread_list", (data) => {
+
+      mainSocket.on("thread_list", (data) => {
         const threads = data.threads;
         console.log("Active Threads:", threads);
       });
-      newSocket.on("thread_print", (data) => {
+
+      mainSocket.on("thread_print", (data) => {
         console.log("Thread Print:", data);
       });
-      socket.value = newSocket;
+
+      socket.value = mainSocket;
+
+      const backupSocketInstance = io(
+        "https://flaskapichat-backup.onrender.com/",
+        {
+          transports: ["websocket"],
+          cors: {
+            origin: "*",
+          },
+        }
+      );
+
+      backupSocketInstance.on("connected", (data) => {
+        if (usingBackupServer.value) {
+          console.log("Connected to backup server.");
+          console.log(data.data);
+        }
+      });
+
+      backupSocketInstance.on("user_entered", (data) => {
+        connectedUsers.splice(0, connectedUsers.length, ...data.users);
+      });
+
+      backupSocketInstance.on("message", (data) => {
+        messages.push(data);
+      });
+
+      backupSocketInstance.on("thread_list", (data) => {
+        const threads = data.threads;
+        if (usingBackupServer.value) {
+          console.log("Active Threads:", threads);
+        }
+      });
+
+      backupSocketInstance.on("thread_print", (data) => {
+        if (usingBackupServer.value) {
+          console.log("Thread Print:", data);
+        }
+      });
+
+      backupSocket.value = backupSocketInstance;
+
       onBeforeUnmount(() => {
-        newSocket.disconnect();
+        mainSocket.disconnect();
+        backupSocketInstance.disconnect();
       });
     });
+
     const handleUsernameChange = (event) => {
       username.value = event.target.value;
     };
+
     const handleMessageChange = (event) => {
       message.value = event.target.value;
     };
+
     const handleUsernameSubmit = () => {
       isLoggedIn.value = true;
     };
+
     const handleMessageSubmit = () => {
       if (message.value.trim() !== "") {
         socket.value.emit("message", {
@@ -111,12 +177,15 @@ export default {
         message.value = "";
       }
     };
+
     const handleDisconnect = () => {
       socket.value.disconnect();
+      backupSocket.value.disconnect();
       username.value = "";
       connectedUsers.splice(0, connectedUsers.length);
       isLoggedIn.value = false;
     };
+
     onMounted(() => {
       if (socket.value) {
         socket.value.on("message", (data) => {
@@ -127,6 +196,7 @@ export default {
         });
       }
     });
+
     return {
       username,
       message,
@@ -142,7 +212,6 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .container {
   display: flex;

@@ -26,13 +26,12 @@
           Conectado como: <span>{{ username }}</span>
         </p>
       </div>
-      <div class="messages-container" ref="messageContaier">
+      <div class="messages-container">
         <!-- Chat-Message -->
         <div
           v-for="(message, index) in messages"
           :key="index"
           class="message-card"
-          ref="messageCard"
         >
           <strong>{{ message.username }}:</strong> {{ message.message }}
         </div>
@@ -315,6 +314,8 @@ export default {
   width: 100%;
   height: 50vh;
   scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 .message-card {
@@ -333,6 +334,7 @@ export default {
   width: 100%;
   gap: 16px;
   justify-content: center;
+  margin-bottom: 20px;
 }
 
 .text-container {

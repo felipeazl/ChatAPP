@@ -314,8 +314,6 @@ export default {
   width: 100%;
   height: 50vh;
   scroll-behavior: smooth;
-  display: flex;
-  flex-direction: column-reverse;
 }
 
 .message-card {

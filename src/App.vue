@@ -61,17 +61,20 @@ import io from "socket.io-client";
 export default {
   name: "App",
   setup() {
-    const username = ref("");
-    const message = ref("");
-    const messages = reactive([]);
-    const socket = ref(null);
-    const backupSocket = ref(null);
-    const connectedUsers = reactive([]);
-    const isLoggedIn = ref(false);
-    const usingBackupServer = ref(false);
-    const serverSwitch = ref(true);
+    // Define variáveis reativas
+    const username = ref(""); // Nome de usuário do usuário
+    const message = ref(""); // Entrada de mensagem
+    const messages = reactive([]); // Array para armazenar as mensagens
+    const socket = ref(null); // Conexão de socket principal
+    const backupSocket = ref(null); // Conexão de socket de backup
+    const connectedUsers = reactive([]); // Array para armazenar os usuários conectados
+    const isLoggedIn = ref(false); // Sinalizador para indicar o status de login do usuário
+    const usingBackupServer = ref(false); // Sinalizador para indicar se o servidor de backup está sendo usado
+    const serverSwitch = ref(true); // Sinalizador para gerenciar a troca de servidor
 
+    // Executado quando o componente é montado
     onMounted(() => {
+      // Conecta-se ao servidor de socket principal
       const mainSocket = io("https://flaskapichat.onrender.com/", {
         transports: ["websocket"],
         cors: {
@@ -79,37 +82,47 @@ export default {
         },
       });
 
+      // Lida com erro de conexão
       mainSocket.on("connect_error", () => {
         if (serverSwitch.value) {
+          // Alterna para o servidor de backup
           socket.value = backupSocket.value;
           usingBackupServer.value = true;
           serverSwitch.value = false;
-          console.log("Using backup server. Trying Reconect...");
+          console.log("Usando servidor de backup. Tentando reconectar...");
+
+          // Tenta voltar para o servidor principal após um delay
           setTimeout(() => {
             serverSwitch.value = true;
           }, 10000);
         }
       });
 
+      // Lida com o evento "connected"
       mainSocket.on("connected", (data) => {
         console.log(data.data);
       });
 
+      // Lida com o evento "user_entered"
       mainSocket.on("user_entered", (data) => {
         connectedUsers.splice(0, connectedUsers.length, ...data.users);
       });
 
+      // Lida com o evento "thread_list"
       mainSocket.on("thread_list", (data) => {
         const threads = data.threads;
-        console.log("Active Threads:", threads);
+        console.log("Threads Ativas:", threads);
       });
 
+      // Lida com o evento "thread_print"
       mainSocket.on("thread_print", (data) => {
-        console.log("Thread Print:", data);
+        console.log("Impressão do Thread:", data);
       });
 
+      // Define a conexão de socket principal
       socket.value = mainSocket;
 
+      // Conecta-se ao servidor de socket de backup
       const backupSocketInstance = io(
         "https://flaskapichat-backup.onrender.com/",
         {
@@ -120,54 +133,65 @@ export default {
         }
       );
 
+      // Lida com o evento "connected" no servidor de backup
       backupSocketInstance.on("connected", (data) => {
         if (usingBackupServer.value) {
-          console.log("Connected to backup server.");
+          console.log("Conectado ao servidor de backup.");
           console.log(data.data);
         }
       });
 
+      // Lida com o evento "user_entered" no servidor de backup
       backupSocketInstance.on("user_entered", (data) => {
         connectedUsers.splice(0, connectedUsers.length, ...data.users);
       });
 
+      // Lida com o evento "message" no servidor de backup
       backupSocketInstance.on("message", (data) => {
         messages.push(data);
       });
 
+      // Lida com o evento "thread_list" no servidor de backup
       backupSocketInstance.on("thread_list", (data) => {
         const threads = data.threads;
         if (usingBackupServer.value) {
-          console.log("Active Threads:", threads);
+          console.log("Threads Ativas:", threads);
         }
       });
 
+      // Lida com o evento "thread_print" no servidor de backup
       backupSocketInstance.on("thread_print", (data) => {
         if (usingBackupServer.value) {
-          console.log("Thread Print:", data);
+          console.log("Impressão do Thread:", data);
         }
       });
 
+      // Define a conexão de socket de backup
       backupSocket.value = backupSocketInstance;
 
+      // Limpa as conexões de socket quando o componente é desmontado
       onBeforeUnmount(() => {
         mainSocket.disconnect();
         backupSocketInstance.disconnect();
       });
     });
 
+    // Lida com a alteração de nome de usuário
     const handleUsernameChange = (event) => {
       username.value = event.target.value;
     };
 
+    // Lida com a alteração de mensagem
     const handleMessageChange = (event) => {
       message.value = event.target.value;
     };
 
+    // Lida com o envio de nome de usuário
     const handleUsernameSubmit = () => {
       isLoggedIn.value = true;
     };
 
+    // Lida com o envio de mensagem
     const handleMessageSubmit = () => {
       if (message.value.trim() !== "") {
         socket.value.emit("message", {
@@ -178,6 +202,7 @@ export default {
       }
     };
 
+    // Lida com a ação de desconexão
     const handleDisconnect = () => {
       socket.value.disconnect();
       backupSocket.value.disconnect();
@@ -186,16 +211,21 @@ export default {
       isLoggedIn.value = false;
     };
 
+    // Executado quando o componente é montado
     onMounted(() => {
       if (socket.value) {
+        // Lida com o evento "message" no servidor principal
         socket.value.on("message", (data) => {
           messages.push(data);
         });
+
+        // Lida com o evento "user_entered" no servidor principal
         socket.value.on("user_entered", (data) => {
           connectedUsers.splice(0, connectedUsers.length, ...data.users);
         });
       }
     });
+
     return {
       username,
       message,
@@ -211,6 +241,7 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 .container {
   display: flex;
